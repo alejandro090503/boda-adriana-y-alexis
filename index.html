@@ -2311,6 +2311,10 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 .fam-group-title,.fam-sep,.fam-sep-dot,.fam-sep-line{background-color:transparent!important;box-shadow:none!important}
 .fam-group-title{background-image:none!important}
 .fam-sep-line{background-image:linear-gradient(to right,transparent,rgba(183,110,121,.6),transparent)!important}
+/* título de grupo centrado y en una línea */
+.fam-group-title{justify-content:center!important;text-align:center;white-space:nowrap;letter-spacing:4px!important;padding:6px 0!important;gap:14px}
+.fam-group-title::before,.fam-group-title::after{flex:1 1 0;min-width:24px}
+.fam-sep-dot{display:none}
 /* ── Menú flotante ── */
 .fx-fabs{position:fixed;top:12px;right:max(10px,calc(50vw - 205px));z-index:1001;display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .9s ease}
 .fx-fabs.on{opacity:1;pointer-events:auto}
@@ -2344,8 +2348,8 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 
 <!-- ENVELOPE OPENING SEQUENCE -->
 <div id="envelope-screen">
-  <img id="env-image" src="assets/envelope.jpg" alt="Sobre de invitación">
-  <video id="env-video" src="assets/envelope-open.mp4" muted playsinline preload="auto"></video>
+  <img id="env-image" src="assets/envelope-v2.jpg" alt="Sobre de invitación">
+  <video id="env-video" src="assets/envelope-open-v2.mp4" muted playsinline preload="auto"></video>
   <div id="env-tap-hint">Toca para abrir</div>
 </div>
 <div id="env-flash" aria-hidden="true"></div>
@@ -2764,30 +2768,16 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 
       <div class="dcx-figs">
         <div class="dcx-fig">
-          <button class="dcx-fig-img" type="button" data-look="caballeros"
-                  aria-label="Ver ideas de vestimenta para caballeros">
+          <div class="dcx-fig-img">
             <img src="assets/caballero.png" alt="Caballero con traje formal oscuro" width="300" height="610" decoding="async">
-          </button>
+          </div>
           <span class="dcx-fig-lbl">Caballeros</span>
-          <button class="dcx-look" type="button" data-look="caballeros"
-                  aria-label="Ver ideas de vestimenta para caballeros">
-            Ver ideas
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-          </button>
         </div>
         <div class="dcx-fig">
-          <button class="dcx-fig-img" type="button" data-look="damas"
-                  aria-label="Ver ideas de vestimenta para damas">
+          <div class="dcx-fig-img">
             <img src="assets/dama.png" alt="Dama con vestido largo formal" width="248" height="604" decoding="async">
-          </button>
+          </div>
           <span class="dcx-fig-lbl">Damas</span>
-          <button class="dcx-look" type="button" data-look="damas"
-                  aria-label="Ver ideas de vestimenta para damas">
-            Ver ideas
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-          </button>
         </div>
       </div>
 
@@ -2840,7 +2830,7 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
   <div class="fam-grove" id="famGrove">
     <div class="fam-thread" aria-hidden="true"></div>
 
-    <p class="fam-group-title">✦ Nuestros Padres ✦</p>
+    <p class="fam-group-title">Nuestros Padres</p>
 
     <div class="fam-node">
       <div class="fam-medal">
@@ -2866,7 +2856,7 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
       <span class="fam-sep-line"></span>
     </div>
 
-    <p class="fam-group-title">✦ Nuestros Padrinos ✦</p>
+    <p class="fam-group-title">Nuestros Padrinos</p>
 
     <div class="fam-node">
       <div class="fam-medal"><div class="fam-medal-orbit"></div><span class="fam-medal-icon">❋</span></div>
