@@ -2315,6 +2315,11 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 .fam-group-title{justify-content:center!important;text-align:center;white-space:nowrap;letter-spacing:4px!important;padding:6px 0!important;gap:14px}
 .fam-group-title::before,.fam-group-title::after{flex:1 1 0;min-width:24px}
 .fam-sep-dot{display:none}
+/* ── Halo blanco global tras todos los textos (menos hero, botones oscuros y foil) ── */
+.ink-bg{opacity:.7}
+.main-wrap section:not(#hero) :is(p,span,h3,h4,li,label,em,strong,small,a,dt,dd,figcaption){text-shadow:0 0 3px rgba(255,255,255,.95),0 0 8px rgba(255,255,255,.95),0 0 16px rgba(255,255,255,.9),0 0 30px rgba(255,255,255,.8)}
+.main-wrap section:not(#hero) :is(.foil-text,.foil-dark){text-shadow:none!important;filter:drop-shadow(0 0 4px rgba(255,255,255,.95)) drop-shadow(0 0 12px rgba(255,255,255,.9)) drop-shadow(0 0 24px rgba(255,255,255,.7))}
+.main-wrap :is(.jm-btn,.jm-toggle-btn.on,.btn-olive,.g3d-lb-btn,.sbx-seal,.sbx-seal *,.vinyl-icons,.jm-btn *,.btn-olive *){text-shadow:none!important}
 /* ── Menú flotante ── */
 .fx-fabs{position:fixed;top:12px;right:max(10px,calc(50vw - 205px));z-index:1001;display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .9s ease}
 .fx-fabs.on{opacity:1;pointer-events:auto}
@@ -2759,6 +2764,7 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 
     <!-- ── CÓDIGO DE VESTIMENTA (adaptado de boda-fabiola-y-fernando) ── -->
     <section id="dresscode" aria-label="Código de vestimenta">
+  <div class="ink-bg ink-oval" aria-hidden="true"><i></i></div>
       <span class="lbl">Vestimenta</span>
       <h2 class="ttl foil-text">Código de Vestimenta</h2>
       <div class="gline"></div>
@@ -2921,6 +2927,7 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 
 
 <section id="rsvp" class="jm-rsvp" data-nav="Confirmar">
+  <div class="ink-bg ink-top flip" aria-hidden="true"><i></i></div>
   <span class="lbl">Confirmación de asistencia</span>
   <h2 class="ttl foil-text foil-fix">¿Nos acompañas?</h2>
   <div class="gline"></div>
