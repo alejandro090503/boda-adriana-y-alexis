@@ -2342,6 +2342,13 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 .h-amp-clip{margin:0!important}
 .h-amp{font-size:54px!important;line-height:.9!important}
 .h-ov{background:linear-gradient(to top,rgba(10,16,40,.82) 0%,rgba(10,16,40,.55) 22%,rgba(10,16,40,0) 46%)!important}
+/* ── foto que sale del sobre ── */
+#env-glow{position:absolute;left:50%;top:44%;width:130vw;height:130vw;max-width:760px;max-height:760px;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;opacity:0;z-index:1;
+  background:radial-gradient(circle,rgba(255,236,196,.95) 0%,rgba(247,214,160,.5) 34%,rgba(247,214,160,0) 68%)}
+#env-pclip{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+#env-card{position:absolute;left:50%;top:0;width:min(60vw,250px);aspect-ratio:3/4;opacity:0;overflow:hidden;border:5px solid #FBF5EA;border-radius:3px;background:#FBF5EA;
+  box-shadow:0 16px 46px rgba(70,48,24,.42),0 2px 8px rgba(70,48,24,.25)}
+#env-card img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 45%}
 /* ── Menú flotante ── */
 .fx-fabs{position:fixed;top:12px;right:max(10px,calc(50vw - 205px));z-index:1001;display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .9s ease}
 .fx-fabs.on{opacity:1;pointer-events:auto}
@@ -2375,8 +2382,10 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
 
 <!-- ENVELOPE OPENING SEQUENCE -->
 <div id="envelope-screen">
-  <img id="env-image" src="assets/envelope-v2.jpg" alt="Sobre de invitación">
-  <video id="env-video" src="assets/envelope-open-v2.mp4" muted playsinline preload="auto"></video>
+  <img id="env-image" src="assets/envelope-v3.jpg" alt="Sobre de invitación">
+  <video id="env-video" src="assets/envelope-open-v3.mp4" muted playsinline preload="auto"></video>
+  <div id="env-glow" aria-hidden="true"></div>
+  <div id="env-pclip" aria-hidden="true"><div id="env-card"><img src="assets/fotos/hero.jpg" alt="" decoding="async"></div></div>
   <div id="env-tap-hint">Toca para abrir</div>
 </div>
 <div id="env-flash" aria-hidden="true"></div>
@@ -3126,16 +3135,41 @@ function initEnvelope() {
       { opacity: 1, duration: .75, ease: 'power2.out' }
     );
 
-    // Dispara flash cuando falten ≤2s para terminar el video
-    vid.addEventListener('timeupdate', () => {
-      if (flashing) return;
-      const d = vid.duration;
-      if (!d || isNaN(d) || !isFinite(d)) return;
-      if (vid.currentTime >= d - 2) triggerFlash();
-    });
-
-    // Fallback: si 'timeupdate' no cumple a tiempo
-    vid.addEventListener('ended', () => { if (!flashing) triggerFlash(); });
+    // La foto sale del sobre cuando la solapa ya está abierta
+    const card = document.getElementById('env-card'), clip = document.getElementById('env-pclip'), glow = document.getElementById('env-glow');
+    let photoStarted = false;
+    const revealSoft = () => {
+      if (flashing) return; flashing = true;
+      wrap.classList.add('visible'); launchPage();
+      gsap.to(screen, { opacity: 0, duration: 1.2, ease: 'power2.inOut',
+        onComplete() { screen.style.display = 'none'; flash.style.display = 'none'; try { vid.pause(); } catch(e){} } });
+    };
+    const runPhoto = () => {
+      if (photoStarted) return; photoStarted = true;
+      const W = innerWidth, H = innerHeight, sc = Math.max(W / 720, H / 1280), dw = 720 * sc, dh = 1280 * sc;
+      const ox = (W - dw) / 2, oy = (H - dh) / 2;
+      const P = (x, y) => [ox + x / 100 * dw, oy + y / 100 * dh];
+      const poly = a => 'polygon(' + a.map(p => p[0].toFixed(1) + 'px ' + p[1].toFixed(1) + 'px').join(',') + ')';
+      const start = [[0,0],[100,0],[100,27],[83,35],[71,45],[62,55],[54,62],[42,55],[31,45],[17,36],[0,27]].map(p => P(p[0], p[1]));
+      const endP = [[0,0],[W,0],[W,H],[W,H],[W,H],[W,H],[W/2,H],[0,H],[0,H],[0,H],[0,H]];
+      const cw = card.offsetWidth, ch = card.offsetHeight;
+      const top0 = oy + 0.75 * dh, rest = oy + 0.40 * dh - ch / 2, full = H / 2 - ch / 2;
+      const S = Math.max(W / cw, H / ch) * 1.03;
+      clip.style.clipPath = poly(start);
+      gsap.set(card, { xPercent: -50, x: 0, y: top0, opacity: 1, scale: .96, rotation: -1.4, transformOrigin: '50% 50%' });
+      const tl = gsap.timeline({ onComplete: revealSoft });
+      window.__envTl = tl;
+      tl.to(glow, { opacity: .85, duration: 1.1, ease: 'power2.out' }, 0)
+        .to(card, { y: rest, scale: 1, rotation: 0, duration: 2.1, ease: 'power2.inOut' }, 0.15)
+        .to(card, { y: full, scale: S, duration: 1.35, ease: 'power3.inOut' }, '>-0.15')
+        .to(clip, { clipPath: poly(endP), duration: 1.35, ease: 'power3.inOut' }, '<')
+        .to(glow, { opacity: 0, duration: 1.0, ease: 'power1.in' }, '<');
+    };
+    window.__envRun = runPhoto;
+    vid.addEventListener('timeupdate', () => { if (vid.currentTime >= 4.1) runPhoto(); });
+    setTimeout(runPhoto, 6500);
+    vid.addEventListener('ended', runPhoto);
+    vid.addEventListener('error', () => { runPhoto(); });
   };
 
   screen.addEventListener('click', openEnvelope);
