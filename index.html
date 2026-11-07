@@ -4459,6 +4459,7 @@ function initRSVP(){
 
   /* Un campo por cada pase que VA A USAR */
   function buildFields(){
+    fields.querySelectorAll('input').forEach(function(x, j){ savedNames[j] = x.value; });
     fields.innerHTML = '';
     for (var i = 0; i < pasesAUsar; i++){
       var inp = document.createElement('input'); inp.type = 'text'; inp.className = 'jm-input';
