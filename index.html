@@ -2302,6 +2302,19 @@ section :is(.tl-ev,.loc-name,.fam-names){font-weight:600!important;opacity:1!imp
 .jm-adultos-icon{display:block;margin:0 auto 8px;color:#B76E79}
 .jm-adultos-title{font-family:var(--serif);font-weight:700;font-size:26px;line-height:1.25;color:#142A66;margin:0 0 8px}
 .jm-adultos-text{font-family:var(--serif);font-weight:500;font-size:19px;line-height:1.55;color:#3A4466;margin:0}
+.jm-para{margin-top:26px}
+.jm-para-lbl{display:block;font-family:var(--serif);font-weight:600;font-size:15px;letter-spacing:3px;text-transform:uppercase;color:#8A4752}
+.jm-para .jm-hi{margin-top:8px;font-size:clamp(34px,9vw,46px);background:linear-gradient(100deg,#142A66 0%,#142A66 38%,#5B78C9 50%,#142A66 62%,#142A66 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding:.12em .2em;margin-left:-.2em;margin-right:-.2em;animation:jmShine 7s ease-in-out infinite}
+@keyframes jmShine{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+.jm-cont-wrap{max-width:360px;margin:18px auto 0}
+.jm-cont-nota{font-family:var(--serif);font-weight:500;font-style:italic;font-size:18px;line-height:1.5;color:#3A4466;margin:0 0 10px}
+.jm-cont{display:flex;align-items:center;justify-content:center;gap:22px;padding:8px 14px;border-radius:999px;background:#F7E7CE;border:1.5px solid rgba(183,110,121,.45)}
+.jm-cont-btn{width:46px;height:46px;flex-shrink:0;border-radius:50%;border:1.5px solid #1E3A8A;background:#fff;color:#1E3A8A;font-family:var(--serif);font-size:26px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.jm-cont-btn:disabled{opacity:.35;cursor:default}
+.jm-cont-valor{font-family:var(--serif);font-size:38px;font-weight:700;line-height:1;color:#142A66;min-width:52px;text-align:center}
+.jm-cont-pie{font-family:var(--serif);font-weight:700;font-size:13px;letter-spacing:2.5px;text-transform:uppercase;color:#8A4752;margin:10px 0 0}
+.jm-input.jm-falta{border-color:#8A2E1F;box-shadow:0 0 0 3px rgba(138,46,31,.15)}
+@media(prefers-reduced-motion:reduce){.jm-para .jm-hi{animation:none}}
 .jm-confetti{position:fixed;top:-12px;z-index:99999;width:9px;height:14px;border-radius:2px;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.jm-btn{animation:none}.jm-toggle-btn,.jm-input{transition:none}}
 
@@ -2950,7 +2963,10 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
   <span class="lbl">Confirmación de asistencia</span>
   <h2 class="ttl foil-text foil-fix">¿Nos acompañas?</h2>
   <div class="gline"></div>
-  <p class="jm-hi" id="jm-hi" style="display:none"></p>
+  <div class="jm-para" id="jm-para" style="display:none">
+    <span class="jm-para-lbl">Esta invitación es para</span>
+    <p class="jm-hi" id="jm-hi"></p>
+  </div>
   <p class="jm-pases-note" id="jm-pases-note"></p>
   <div class="jm-pases" id="jm-pases-display" style="display:none">
     <span class="jm-pases-label">Pases</span>
@@ -2961,6 +2977,15 @@ section .ttl,.ft-nms{filter:drop-shadow(0 0 7px rgba(251,245,234,.95)) drop-shad
     <div class="jm-toggle">
       <button class="jm-toggle-btn" id="jm-btnYes" type="button">Asistiré</button>
       <button class="jm-toggle-btn" id="jm-btnNo" type="button">No podré asistir</button>
+    </div>
+    <div class="jm-cont-wrap" id="jm-cont-wrap" style="display:none">
+      <p class="jm-cont-nota" id="jm-cont-nota"></p>
+      <div class="jm-cont">
+        <button class="jm-cont-btn" id="jm-menos" type="button" aria-label="Quitar un pase">&minus;</button>
+        <span class="jm-cont-valor" id="jm-cont-valor" aria-live="polite">1</span>
+        <button class="jm-cont-btn" id="jm-mas" type="button" aria-label="Agregar un pase">+</button>
+      </div>
+      <p class="jm-cont-pie" id="jm-cont-pie"></p>
     </div>
     <div class="jm-fields" id="jm-fields" style="display:none"></div>
     <button class="jm-btn" id="jm-confirm-btn" type="button"><span id="jm-btn-text">Confirmar asistencia</span></button>
@@ -4382,7 +4407,10 @@ window.initRSVP = initRSVP;
 
 </script>
 <script>
-/* RSVP · Panel de Invitados (X pases) — port de boda-jennifer. Llamar initRSVP() una vez (idempotente). */
+/* RSVP · Panel de Invitados (X pases) — estilo boda-jennifer + estándar Elysium:
+   link ?i=<base64url nombre|pases|menores> (o ?para=&pases=), contador de pases a usar,
+   un nombre por campo, aviso de nombres faltantes y bloqueo de links que el panel no conoce.
+   Llamar initRSVP() una vez (idempotente). */
 function initRSVP(){
   var root = document.getElementById('rsvp');
   if (!root || root.getAttribute('data-jm-init')) return;
@@ -4391,36 +4419,84 @@ function initRSVP(){
   var API = 'https://panel-invitados.vercel.app/api/confirmar';
   var URL_BODA = 'https://boda-adriana-y-alexis.vercel.app';
   var DEADLINE = new Date('2026-11-18T23:59:59-06:00');
+
+  /* ── parámetros del link ── */
   var qs = new URLSearchParams(location.search);
   var para = (qs.get('para') || '').trim();
-  var pases = Math.max(1, Math.min(20, parseInt(qs.get('pases'), 10) || 1));
+  var pases = parseInt(qs.get('pases'), 10) || 1;
+  var tok = qs.get('i');
+  if (tok){
+    try {
+      var b64 = tok.replace(/-/g, '+').replace(/_/g, '/'); while (b64.length % 4) b64 += '=';
+      var bin = atob(b64), bytes = new Uint8Array(bin.length);
+      for (var k = 0; k < bin.length; k++) bytes[k] = bin.charCodeAt(k);
+      var parts = new TextDecoder().decode(bytes).split('|');
+      if (parts[0]) para = parts[0].trim();
+      if (parts[1]) pases = parseInt(parts[1], 10) || pases;
+    } catch(_){}
+  }
+  pases = Math.max(1, Math.min(20, pases));
+
   var frozen = new Date() > DEADLINE;
-  var estado = null, savedNames = [];
+  var cerrado = false;          /* link bloqueado / borrado / desconocido */
+  var estado = null, savedNames = [], pasesAUsar = 1;
   var $ = function(id){ return document.getElementById(id); };
-  var hi = $('jm-hi'), note = $('jm-pases-note'), disp = $('jm-pases-display'), num = $('jm-pases-num');
+  var paraBox = $('jm-para'), hi = $('jm-hi'), note = $('jm-pases-note'), disp = $('jm-pases-display'), num = $('jm-pases-num');
   var fields = $('jm-fields'), btn = $('jm-confirm-btn'), btnText = $('jm-btn-text');
   var yes = $('jm-btnYes'), no = $('jm-btnNo'), fb = $('jm-feedback');
   var bandejaEl = $('jm-bandeja'), graciasEl = $('jm-gracias');
   var gTitleEl = $('jm-gracias-title'), gSubEl = $('jm-gracias-sub'), editarBtn = $('jm-editar-btn');
+  var contWrap = $('jm-cont-wrap'), contNota = $('jm-cont-nota'), contValor = $('jm-cont-valor'), contPie = $('jm-cont-pie');
+  var btnMenos = $('jm-menos'), btnMas = $('jm-mas');
+
   function paseText(){ note.textContent = pases === 1 ? 'Hemos reservado un lugar para ti.' : 'Hemos reservado ' + pases + ' lugares en tu honor.'; }
-  if (para){ hi.textContent = para; hi.style.display = ''; }
-  num.textContent = pases; disp.style.display = ''; paseText();
+  function paintHeader(){
+    if (para){ hi.textContent = para; paraBox.style.display = ''; }
+    num.textContent = pases; disp.style.display = ''; paseText();
+  }
+  paintHeader();
   function setFeedback(t, c){ fb.textContent = t; fb.className = 'jm-feedback' + (c ? ' ' + c : ''); }
+
+  /* Un campo por cada pase que VA A USAR */
   function buildFields(){
     fields.innerHTML = '';
-    for (var i = 0; i < pases; i++){
+    for (var i = 0; i < pasesAUsar; i++){
       var inp = document.createElement('input'); inp.type = 'text'; inp.className = 'jm-input';
-      inp.placeholder = 'Nombre completo del invitado ' + (i + 1); inp.autocomplete = 'name';
-      if (savedNames[i]) inp.value = savedNames[i];
+      inp.placeholder = pasesAUsar === 1 ? 'Tu nombre completo' : 'Nombre completo del invitado ' + (i + 1);
+      inp.autocomplete = 'off'; inp.maxLength = 60; inp.disabled = frozen || cerrado;
+      inp.value = savedNames[i] || '';
+      (function(idx){ inp.addEventListener('input', function(){ savedNames[idx] = this.value; this.classList.remove('jm-falta'); }); })(i);
       fields.appendChild(inp);
     }
   }
+  /* Contador: solo con "Asistiré" y más de un pase */
+  function pintaContador(){
+    var ver = estado === 'confirmado' && pases > 1;
+    contWrap.style.display = ver ? '' : 'none';
+    if (!ver) return;
+    contValor.textContent = pasesAUsar;
+    contNota.textContent = 'Tienes ' + pases + ' pases reservados. Aumenta el número de pases que vayas a ocupar.';
+    contPie.textContent = pasesAUsar >= pases ? 'Usarás todos tus pases' : pasesAUsar + ' de ' + pases + ' pases';
+    btnMenos.disabled = frozen || cerrado || pasesAUsar <= 1;
+    btnMas.disabled = frozen || cerrado || pasesAUsar >= pases;
+  }
+  function setPases(n){
+    if (frozen || cerrado) return;
+    var v = Math.max(1, Math.min(pases, n));
+    if (v === pasesAUsar) return;
+    pasesAUsar = v; pintaContador(); buildFields(); setFeedback('', '');
+  }
+  btnMenos.addEventListener('click', function(){ setPases(pasesAUsar - 1); });
+  btnMas.addEventListener('click', function(){ setPases(pasesAUsar + 1); });
+
   function selectRsvp(v){
     estado = v; yes.classList.toggle('on', v === 'confirmado'); no.classList.toggle('on', v === 'declino');
     if (v === 'confirmado'){ buildFields(); fields.style.display = ''; } else { fields.innerHTML = ''; fields.style.display = 'none'; }
+    pintaContador();
   }
-  yes.addEventListener('click', function(){ if (!frozen) selectRsvp('confirmado'); });
-  no.addEventListener('click', function(){ if (!frozen) selectRsvp('declino'); });
+  yes.addEventListener('click', function(){ if (!frozen && !cerrado){ selectRsvp('confirmado'); setFeedback('', ''); } });
+  no.addEventListener('click', function(){ if (!frozen && !cerrado){ selectRsvp('declino'); setFeedback('', ''); } });
+
   function mostrarGracias(est, nombres){
     if (est === 'confirmado'){
       gTitleEl.textContent = '¡Gracias por confirmar!';
@@ -4431,7 +4507,20 @@ function initRSVP(){
     }
     bandejaEl.style.display = 'none'; graciasEl.style.display = '';
   }
-  editarBtn.addEventListener('click', function(){ if (!frozen){ graciasEl.style.display = 'none'; bandejaEl.style.display = ''; setFeedback('', ''); } });
+  editarBtn.addEventListener('click', function(){ if (!frozen && !cerrado){ graciasEl.style.display = 'none'; bandejaEl.style.display = ''; setFeedback('', ''); } });
+
+  function cerrar(msg){
+    cerrado = true;
+    yes.disabled = no.disabled = btn.disabled = editarBtn.disabled = true;
+    btnMenos.disabled = btnMas.disabled = true;
+    fields.querySelectorAll('input').forEach(function(i){ i.disabled = true; });
+    graciasEl.style.display = 'none'; bandejaEl.style.display = '';
+    setFeedback(msg, 'err');
+  }
+  var MSG_LINK = 'Abre el enlace personal que te enviaron los novios para confirmar.';
+  var MSG_CERRADO = 'Las confirmaciones para esta invitación están cerradas. Si necesitas un cambio, comunícate con los novios.';
+  var MSG_BORRADA = 'Esta invitación ya no está activa. Comunícate con los novios.';
+
   function confetti(){
     if (RM) return;
     var cols = ['#1E3A8A', '#3F5BA9', '#B76E79', '#E7BDC2', '#F7E7CE'];
@@ -4439,36 +4528,68 @@ function initRSVP(){
       var c = document.createElement('i'); c.className = 'jm-confetti';
       c.style.left = Math.random() * 100 + 'vw'; c.style.background = cols[i % cols.length];
       document.body.appendChild(c);
-      c.animate([{ transform: 'translateY(0) rotate(0)', opacity: 1 }, { transform: 'translateY(' + (innerHeight + 40) + 'px) translateX(' + (Math.random() * 120 - 60) + 'px) rotate(' + (Math.random() * 720) + 'deg)', opacity: .8 }],
+      c.animate([{ transform: 'translateY(0) rotate(0)', opacity: 1 }, { transform: 'translateY(' + (innerHeight + 40) + 'px) translateX(' + (Math.random() * 120 - 60) + 'px) rotate(' + (Math.random() * 720) + 'deg)', opacity: .9 }],
         { duration: 2200 + Math.random() * 1600, delay: Math.random() * 400, easing: 'cubic-bezier(.2,.6,.4,1)' }).onfinish = (function(el){ return function(){ el.remove(); }; })(c);
     }
   }
+
   if (frozen){
     yes.disabled = no.disabled = btn.disabled = true; editarBtn.disabled = true;
+    btnMenos.disabled = btnMas.disabled = true;
     btnText.textContent = 'Confirmaciones cerradas';
     setFeedback('La fecha límite para confirmar ya pasó.', 'err');
   }
-  if (para){
+
+  if (!para){
+    cerrar(MSG_LINK);
+  } else {
     fetch(API + '?nombre=' + encodeURIComponent(para) + '&url_boda=' + encodeURIComponent(URL_BODA))
       .then(function(r){ return r.json(); })
       .then(function(d){
-        var inv = d && d.invitado; if (!inv) return;
-        if (inv.pases){ pases = Math.max(1, parseInt(inv.pases, 10) || pases); num.textContent = pases; paseText(); }
+        var inv = d && d.invitado;
+        if (!inv){ cerrar(MSG_LINK); return; }          /* el panel no conoce este link */
+        if (inv.nombre){ para = inv.nombre; }
+        if (inv.pases){ pases = Math.max(1, parseInt(inv.pases, 10) || pases); }
+        paintHeader();
         if (inv.estado === 'confirmado' || inv.estado === 'declino'){
-          savedNames = inv.nombres_confirmados || [];
+          savedNames = (inv.nombres_confirmados || []).slice();
+          pasesAUsar = Math.min(pases, Math.max(1, savedNames.length));
           selectRsvp(inv.estado); btnText.textContent = 'Actualizar respuesta';
           mostrarGracias(inv.estado, savedNames);
         }
+        if (inv.bloqueado){ cerrar(MSG_CERRADO); if (inv.estado === 'confirmado' || inv.estado === 'declino') { bandejaEl.style.display = 'none'; graciasEl.style.display = ''; } }
       }).catch(function(){});
   }
+
   btn.addEventListener('click', function(){
-    if (frozen) return;
-    if (!para){ setFeedback('Abre tu enlace personal de invitación para confirmar.', 'err'); return; }
+    if (frozen || cerrado) return;
+    if (!para){ setFeedback(MSG_LINK, 'err'); return; }
     if (!estado){ setFeedback('Elige si asistirás o no.', 'err'); return; }
     var nombres = [];
     if (estado === 'confirmado'){
-      fields.querySelectorAll('input').forEach(function(i){ var v = i.value.trim(); if (v) nombres.push(v); });
-      if (!nombres.length){ setFeedback('Escribe al menos un nombre.', 'err'); return; }
+      var inputs = fields.querySelectorAll('input');
+      inputs.forEach(function(i){ var v = i.value.trim(); if (v) nombres.push(v); });
+      if (!nombres.length){ setFeedback('Escribe al menos un nombre.', 'err'); if (inputs[0]) inputs[0].focus(); return; }
+      /* Un nombre por campo */
+      var doble = null;
+      inputs.forEach(function(i){
+        var malo = /[&\/+,]|\s(y|e|and)\s/i.test(i.value.trim());
+        i.classList.toggle('jm-falta', malo); if (malo && !doble) doble = i;
+      });
+      if (doble){
+        setFeedback('Escribe un solo nombre en cada campo. Si vienen más personas, sube el contador y escribe cada nombre en su propio campo.', 'err');
+        doble.focus(); return;
+      }
+      /* Eligió más pases de los nombres que escribió */
+      if (nombres.length < pasesAUsar){
+        var faltan = pasesAUsar - nombres.length, primero = null;
+        inputs.forEach(function(i){ if (!i.value.trim()){ i.classList.add('jm-falta'); if (!primero) primero = i; } });
+        setFeedback('Elegiste ' + pasesAUsar + ' pases pero escribiste ' + nombres.length + ' nombre' + (nombres.length === 1 ? '' : 's') +
+          '. Escribe ' + (faltan === 1 ? 'el nombre que falta' : 'los ' + faltan + ' nombres que faltan') +
+          ' o baja el contador a los pases que vas a utilizar.', 'err');
+        if (primero) primero.focus();
+        return;
+      }
     }
     btn.disabled = true; setFeedback('Enviando…', '');
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -4476,6 +4597,10 @@ function initRSVP(){
       .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, d: d }; }); })
       .then(function(res){
         btn.disabled = false;
+        var err = res.d && res.d.error;
+        if (err === 'respuestas_cerradas'){ cerrar(MSG_CERRADO); return; }
+        if (err === 'invitacion_borrada'){ cerrar(MSG_BORRADA); return; }
+        if (err === 'no_match'){ cerrar(MSG_LINK); return; }
         if (!res.ok || (res.d && res.d.ok === false)){ setFeedback('No pudimos registrar tu respuesta. Intenta de nuevo.', 'err'); return; }
         savedNames = nombres; btnText.textContent = 'Actualizar respuesta'; setFeedback('', '');
         mostrarGracias(estado, nombres);
