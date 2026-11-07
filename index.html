@@ -3141,7 +3141,7 @@ function initEnvelope() {
     const revealSoft = () => {
       if (flashing) return; flashing = true;
       wrap.classList.add('visible'); launchPage();
-      gsap.to(screen, { opacity: 0, duration: 1.2, ease: 'power2.inOut',
+      gsap.to(screen, { opacity: 0, duration: 1.8, ease: 'sine.inOut',
         onComplete() { screen.style.display = 'none'; flash.style.display = 'none'; try { vid.pause(); } catch(e){} } });
     };
     const runPhoto = () => {
@@ -3157,13 +3157,16 @@ function initEnvelope() {
       const S = Math.max(W / cw, H / ch) * 1.03;
       clip.style.clipPath = poly(start);
       gsap.set(card, { xPercent: -50, x: 0, y: top0, opacity: 1, scale: .96, rotation: -1.4, transformOrigin: '50% 50%' });
-      const tl = gsap.timeline({ onComplete: revealSoft });
+      const tl = gsap.timeline();
       window.__envTl = tl;
-      tl.to(glow, { opacity: .85, duration: 1.1, ease: 'power2.out' }, 0)
-        .to(card, { y: rest, scale: 1, rotation: 0, duration: 2.1, ease: 'power2.inOut' }, 0.15)
-        .to(card, { y: full, scale: S, duration: 1.35, ease: 'power3.inOut' }, '>-0.15')
-        .to(clip, { clipPath: poly(endP), duration: 1.35, ease: 'power3.inOut' }, '<')
-        .to(glow, { opacity: 0, duration: 1.0, ease: 'power1.in' }, '<');
+      tl.to(glow, { opacity: .6, duration: 1.6, ease: 'sine.out' }, 0)
+        .to(card, { y: rest, scale: 1, rotation: 0, duration: 2.7, ease: 'sine.inOut' }, 0.1)
+        .add('grow', '>-1.0')
+        .call(() => { try { vid.pause(); } catch(e){} }, null, 'grow')
+        .to(card, { y: full, scale: S, duration: 3.2, ease: 'sine.inOut' }, 'grow')
+        .to(clip, { clipPath: poly(endP), duration: 3.2, ease: 'sine.inOut' }, 'grow')
+        .to(glow, { opacity: 0, duration: 2.2, ease: 'sine.inOut' }, 'grow')
+        .call(revealSoft, null, '>-0.6');
     };
     window.__envRun = runPhoto;
     vid.addEventListener('timeupdate', () => { if (vid.currentTime >= 4.1) runPhoto(); });
